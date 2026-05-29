@@ -55,5 +55,39 @@ namespace Notes.Tests
             Assert.AreEqual("Высокий", loadedNotes[0].Priority);
             Assert.IsFalse(loadedNotes[0].IsCompleted);
         }
+
+        [TestMethod]
+        public void SaveAndLoad_CompletedState_ShouldBePreserved()
+        {
+            // Arrange
+            var notes = new List<Note>
+            {
+                new Note 
+                { 
+                    Title = "Incomplete Note", 
+                    IsCompleted = false
+                },
+                new Note 
+                { 
+                    Title = "Completed Note", 
+                    IsCompleted = true
+                }
+            };
+
+            // Act
+            DataManager.Save(notes);
+            var loadedNotes = DataManager.Load();
+
+            // Assert
+            Assert.AreEqual(2, loadedNotes.Count);
+            
+            var incompleteNote = loadedNotes.Find(n => n.Title == "Incomplete Note");
+            Assert.IsNotNull(incompleteNote);
+            Assert.IsFalse(incompleteNote.IsCompleted, "Note should be marked as incomplete");
+
+            var completedNote = loadedNotes.Find(n => n.Title == "Completed Note");
+            Assert.IsNotNull(completedNote);
+            Assert.IsTrue(completedNote.IsCompleted, "Note should be marked as completed");
+        }
     }
 }

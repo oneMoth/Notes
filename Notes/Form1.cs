@@ -43,19 +43,50 @@ namespace Notes
         {
             dgvNotes.AutoGenerateColumns = false;
             dgvNotes.DataSource = bindingSource;
+            dgvNotes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvNotes.ReadOnly = false;
 
-            dgvNotes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Title", HeaderText = "Название", Width = 200 });
-            dgvNotes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ReminderDate", HeaderText = "Время", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Format = "dd.MM.yyyy HH:mm" } });
-            dgvNotes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Priority", HeaderText = "Приоритет", Width = 100 });
+            var checkCol = new DataGridViewCheckBoxColumn
+            {
+                DataPropertyName = "IsCompleted",
+                HeaderText = "✓",
+                Width = 30,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                ReadOnly = false
+            };
+            dgvNotes.Columns.Add(checkCol);
+
+            dgvNotes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Title", HeaderText = "Название", ReadOnly = true });
+            dgvNotes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ReminderDate", HeaderText = "Время", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "dd.MM.yyyy HH:mm" } });
+            dgvNotes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Priority", HeaderText = "Приоритет", ReadOnly = true });
 
             var statusCol = new DataGridViewTextBoxColumn
             {
                 HeaderText = "Статус",
-                Width = 100
+                ReadOnly = true
             };
             dgvNotes.Columns.Add(statusCol);
 
             dgvNotes.CellFormatting += DgvNotes_CellFormatting;
+            dgvNotes.CurrentCellDirtyStateChanged += DgvNotes_CurrentCellDirtyStateChanged;
+            dgvNotes.CellValueChanged += DgvNotes_CellValueChanged;
+        }
+
+        private void DgvNotes_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (dgvNotes.IsCurrentCellDirty)
+            {
+                dgvNotes.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+        private void DgvNotes_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && dgvNotes.Columns[e.ColumnIndex].DataPropertyName == "IsCompleted")
+            {
+                SaveData();
+                dgvNotes.InvalidateRow(e.RowIndex); // Обновляем стиль строки
+            }
         }
 
         private void DgvNotes_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
